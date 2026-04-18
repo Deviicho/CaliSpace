@@ -1,0 +1,41 @@
+tasks:
+understand these fundimentals:
+styling (basics & more advanced things like animations)
+figure out the blur and center thing
+
+
+---
+problems:
+---
+questions:
+how will Auth work
+Turso configurations
+how will i make the tools is it gonna be a module already done thing or am i gonna have to make it from scratch
+is the pushups counter a math related task
+how to make the app offline and sync-when-connected
+how to make the user experience smooth
+how to make the app work on iphone and android without having an apple device to test it
+---
+random thoughts:
+add a measurment format specifier so the user can set the exercise to seconds or minutes or reps 
+make sure all the tools needed are free without expirey date
+---
+pages done:
+Greeting ✔
+feature1 ✔
+feature2 ✔
+feature3 ✔
+feature4 ✔
+feature5 ✔
+signup
+login
+home
+workout
+[day]
+edit/create exercise
+tools
+pushups counter
+timer
+stopwatch
+settings
+
