@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   hookText: {
-    fontFamily: 'Poppins-Black',
+    fontFamily: 'Poppins-Black', 
     marginTop: height*0.11,
     fontSize: 45,
     letterSpacing: -1,
