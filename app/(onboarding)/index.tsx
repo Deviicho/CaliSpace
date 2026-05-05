@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Black', 
     marginTop: height*0.11,
     fontSize: 45,
-    letterSpacing: -1,
+    letterSpacing: -1, 
     lineHeight: 50,
     textAlign: 'center',
   },

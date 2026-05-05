@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { TouchableOpacity, Text } from 'react-native';
@@ -13,88 +13,94 @@ import {
   Poppins_700Bold, 
   Poppins_900Black 
 } from '@expo-google-fonts/poppins';
+import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
+import { tokenCache } from '@clerk/clerk-expo/token-cache';
 
-// Prevent the splash screen from auto-hiding
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function InitialLayout() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const segments = useSegments();
   const router = useRouter();
-  const [seenOnboarding, setSeenOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const navigate = async () => {
+      const val = await AsyncStorage.getItem('onboarding_complete');
+      const seenOnboarding = val === 'true';
+
+      const inAuthGroup = segments[0] === '(auth)';
+      const inOnboardingGroup = segments[0] === '(onboarding)';
+
+      if (!seenOnboarding && !inOnboardingGroup) {
+        router.replace('/(onboarding)');
+      } else if (seenOnboarding && !isSignedIn && !inAuthGroup) {
+        router.replace('/(auth)/signup');
+      } else if (isSignedIn && (inAuthGroup || inOnboardingGroup)) {
+        router.replace('/(tabs)/Home');
+      }
+
+      await SplashScreen.hideAsync();
+    };
+
+    navigate();
+  }, [isSignedIn, isLoaded, segments]);
+
+  return (
+    <Stack
+      screenOptions={{ 
+        contentStyle: { backgroundColor: '#151414' },
+        headerShown: false 
+      }}
+    >
+      <Stack.Screen name="(onboarding)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(auth)" />
+      
+      <Stack.Screen
+        name="settings"
+        options={{
+          headerShown: true,
+          headerStyle: { 
+            backgroundColor: '#151414',
+            borderBottomWidth: 1,
+            borderBottomColor: '#d9d9d97c',
+          } as any,
+          headerTitle: () => null,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 16 }}
+            >
+              <ArrowLeftIcon width={25} height={25} fill={colors.icons} />
+              <Text style={{ color: colors.Ptext, fontSize: 20 }}>Settings</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
   const [loaded, error] = useFonts({
     'Poppins-Regular': Poppins_400Regular,
     'Poppins-SemiBold': Poppins_600SemiBold,
     'Poppins-Bold': Poppins_700Bold,
-    'Poppins-Black': Poppins_900Black, // This is your "bolder than bold" weight
+    'Poppins-Black': Poppins_900Black,
   });
 
-  useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
-
-
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        await AsyncStorage.clear();
-        const val = await AsyncStorage.getItem('onboarding_complete');
-        // We set the state based on what we find in storage
-        setSeenOnboarding(val === 'true');
-        if (seenOnboarding === true) console.log('onboarding is seen')
-      } catch (e) {
-        setSeenOnboarding(false);
-      }
-    };
-    checkStatus();
-  }, []);
-
-  if (!loaded && !error) {
-    return null;
-  }
-  // IMPORTANT: Do not render the Stack until we know the onboarding status
-  if (seenOnboarding === null) return null;
+  if (!loaded && !error) return null;
 
   return (
-    <>
-      <Stack
-        // This is the NEW logic. It chooses the "Starting Folder" 
-        // based on your AsyncStorage value.
-        initialRouteName={seenOnboarding ? "(tabs)" : "(onboarding)"}
-        screenOptions={{ 
-          contentStyle: { backgroundColor: '#151414' },
-          headerShown: false 
-        }}
-      >
-        {/* These just tell the app "these folders exist" */}
-        <Stack.Screen name="(onboarding)" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(auth)" />
-        
-        <Stack.Screen
-          name="settings"
-          options={{
-            headerShown: true,
-            headerStyle: { 
-              backgroundColor: '#151414',
-              borderBottomWidth: 1,
-              borderBottomColor: '#d9d9d97c',
-            } as any,
-            headerTitle: () => null,
-            headerLeft: () => (
-              <TouchableOpacity
-                onPress={() => router.back()}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 16 }}
-              >
-                <ArrowLeftIcon width={25} height={25} fill={colors.icons} />
-                <Text style={{ color: colors.Ptext, fontSize: 20 }}>Settings</Text>
-              </TouchableOpacity>
-            ),
-          }}
-        />
-      </Stack>
-
-      <StatusBar style="light" />
-    </>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+      <ClerkLoaded>
+        <InitialLayout />
+        <StatusBar style="light" />
+      </ClerkLoaded>
+    </ClerkProvider>
   );
 }

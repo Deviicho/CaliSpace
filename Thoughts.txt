@@ -38,4 +38,8 @@ pushups counter
 timer
 stopwatch
 settings
+---
+steps to set the clerk authentication with username email password and google oauth:
+
+
 

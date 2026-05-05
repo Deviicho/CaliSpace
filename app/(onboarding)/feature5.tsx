@@ -34,7 +34,7 @@ export default function Feature5Screen() {
           <Text style={styles.title}>Cloud Sync</Text>
           <Text style={styles.description}>{'"Your progress, always with you."\nYour data is securely saved and synced across sessions never lose a workout, no matter what device you\'re on.'}</Text>
           <View style={styles.buttonsContainer}>
-             <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/(auth)/signup')}>
+             <TouchableOpacity style={styles.nextButton} onPress={handleFinish}>
                 <Text style={styles.buttonText}>Create Account</Text>
              </TouchableOpacity>
           </View>
