@@ -24,30 +24,34 @@ function InitialLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [ready, setReady] = useState(false); // ADDED
 
   useEffect(() => {
     if (!isLoaded) return;
 
-    const navigate = async () => {
-      const val = await AsyncStorage.getItem('onboarding_complete');
-      const seenOnboarding = val === 'true';
+      const navigate = async () => {
+        const val = await AsyncStorage.getItem('onboarding_complete');
+        const seenOnboarding = val === 'true';
 
-      const inAuthGroup = segments[0] === '(auth)';
-      const inOnboardingGroup = segments[0] === '(onboarding)';
+        const inAuthGroup = segments[0] === '(auth)';
+        const inOnboardingGroup = segments[0] === '(onboarding)';
 
-      if (!seenOnboarding && !inOnboardingGroup) {
-        router.replace('/(onboarding)');
-      } else if (seenOnboarding && !isSignedIn && !inAuthGroup) {
-        router.replace('/(auth)/signup');
-      } else if (isSignedIn && (inAuthGroup || inOnboardingGroup)) {
-        router.replace('/(tabs)/Home');
-      }
+        if (isSignedIn && (inAuthGroup || inOnboardingGroup)) {
+          router.replace('/(tabs)/Home');
+        } else if (seenOnboarding && !isSignedIn && !inAuthGroup) {
+          router.replace('/(auth)/signup');
+        } else if (!seenOnboarding && !inOnboardingGroup) {
+          router.replace('/(onboarding)');
+        }
 
-      await SplashScreen.hideAsync();
-    };
+        await SplashScreen.hideAsync();
+        setReady(true); // ADDED
+      };
 
     navigate();
   }, [isSignedIn, isLoaded, segments]);
+
+  if (!ready) return null; // ADDED
 
   return (
     <Stack

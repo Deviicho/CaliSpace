@@ -8,7 +8,6 @@ figure out the blur and center thing
 problems:
 ---
 questions:
-how will Auth work
 Turso configurations
 how will i make the tools is it gonna be a module already done thing or am i gonna have to make it from scratch
 is the pushups counter a math related task
@@ -39,7 +38,3 @@ timer
 stopwatch
 settings
 ---
-steps to set the clerk authentication with username email password and google oauth:
-
-
-

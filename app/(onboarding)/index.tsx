@@ -1,26 +1,36 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'expo-router';
-import { Image, ImageBackground, StyleSheet, ViewComponent } from 'react-native';
+import { Image, ImageBackground, StyleSheet } from 'react-native';
 import { TouchableOpacity, View, Dimensions } from 'react-native'
 import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors'
 import { wheights } from '@/constants/wheights'
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from '@react-navigation/elements';
 
 const { width, height } = Dimensions.get('window');
 
 export default function GreetingScreen() {
   const router = useRouter();
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      // await AsyncStorage.removeItem('onboarding_complete');  //use this for testing the onboarding
+      const val = await AsyncStorage.getItem('onboarding_complete');
+      if (val !== 'true') setShouldRender(true);
+    };
+    check();
+  }, []);
+
+  if (!shouldRender) return null;
 
   return (
-    // flex: 1 ensures this view fills the entire screen regardless of device
     <View style={styles.container}>
       
       <ImageBackground 
-        // Correct way to load local assets
         source={require('@/assets/images/fittness background.png')} 
         style={styles.background}
-        // This ensures the image covers the screen without stretching weirdly
         resizeMode="cover"
       >
         <View style={styles.overlay}>
@@ -51,17 +61,16 @@ export default function GreetingScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Fills full height/width of the screen
+    flex: 1,
     backgroundColor: '#151414',
   },
   background: {
-    flex: 1, // Ensures the ImageBackground fills the container
+    flex: 1,
     width: '100%',
     height: '100%',
   },
   overlay: {
     flex: 1,
-    // This is your black mask. 'a6' is roughly 65% opacity.
     backgroundColor: 'rgba(0, 0, 0, 0.55)', 
     paddingTop: width * 0.25,
     paddingHorizontal: 20,
@@ -70,7 +79,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#D70000', // Using your signature red
+    backgroundColor: '#D70000',
     padding: 12,
     width: '80%',
     borderRadius: 14,
@@ -79,7 +88,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#d8d8d883',  
     borderStyle: 'solid',
-
   },
   buttonText: {
     fontFamily: 'Poppins-bold',
@@ -112,12 +120,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.Stext,
     marginBottom:height*0.12,
-
   },
   marketingSentence: {
     fontFamily: 'Poppins-bold',
     marginTop: height*0.055,
-    
     fontSize: 16,
     textAlign: 'center',
     color: colors.Ptext,

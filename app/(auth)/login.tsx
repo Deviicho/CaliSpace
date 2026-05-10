@@ -1,33 +1,48 @@
-import { Pressable, StyleSheet, TextInput, View, Text } from 'react-native'
-import { useSignIn } from '@clerk/clerk-expo' // Fixed import
+import { Pressable, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native'
+import { useSignIn, useOAuth } from '@clerk/clerk-expo'
 import { type Href, Link, useRouter } from 'expo-router'
 import React from 'react'
 import { colors } from '@/constants/colors'
+import * as WebBrowser from 'expo-web-browser'
+import { Ionicons } from '@expo/vector-icons'
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function Page() {
   const { signIn, isLoaded: signInLoaded, setActive } = useSignIn()
+  const { startOAuthFlow } = useOAuth({ 
+    strategy: 'oauth_google',
+    redirectUrl: 'calispace://oauth-callback'
+  })
+
   const router = useRouter()
 
   const [emailAddress, setEmailAddress] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [code, setCode] = React.useState('')
   const [isVerifying, setIsVerifying] = React.useState(false)
+  const [showPassword, setShowPassword] = React.useState(false)
 
-  // 1. Handle standard Email/Password Login
+  const handleGoogleSignIn = async () => {
+    try {
+      const { createdSessionId, setActive: setActiveSession } = await startOAuthFlow()
+      if (createdSessionId && setActiveSession) {
+        await setActiveSession({ session: createdSessionId })
+        router.replace('/(tabs)/Home')
+      }
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2))
+    }
+  }
+
   const handleSubmit = async () => {
     if (!signInLoaded || !signIn) return
-
     try {
-      const result = await signIn.create({
-        identifier: emailAddress,
-        password,
-      })
-
+      const result = await signIn.create({ identifier: emailAddress, password })
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
         router.replace('/(tabs)/Home')
       } else if (result.status === 'needs_second_factor' || (result.status as any) === 'needs_client_trust') {
-        // If your Clerk settings require MFA
         setIsVerifying(true)
       } else {
         console.error('Sign-in not complete:', result)
@@ -37,26 +52,19 @@ export default function Page() {
     }
   }
 
-  // 2. Handle MFA/Verification (if needed)
   const handleVerify = async () => {
-  if (!signInLoaded || !signIn || !setActive) return
-
-  try {
-    const result = await signIn.attemptFirstFactor({
-      strategy: 'email_code',
-      code,
-    })
-
-    if (result.status === 'complete') {
-      await setActive({ session: result.createdSessionId })
-      router.replace('/(tabs)/Home')
+    if (!signInLoaded || !signIn || !setActive) return
+    try {
+      const result = await signIn.attemptFirstFactor({ strategy: 'email_code', code })
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId })
+        router.replace('/(tabs)/Home')
+      }
+    } catch (err: any) {
+      console.error("Verification Error:", JSON.stringify(err, null, 2))
     }
-  } catch (err: any) {
-    console.error("Verification Error:", JSON.stringify(err, null, 2))
   }
-}
 
-  // Verification Screen UI
   if (isVerifying) {
     return (
       <View style={styles.container}>
@@ -79,7 +87,6 @@ export default function Page() {
     )
   }
 
-  // Main Login UI
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back</Text>
@@ -96,15 +103,20 @@ export default function Page() {
       />
 
       <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        value={password}
-        placeholder="Enter password"
-        placeholderTextColor="#666666"
-        secureTextEntry={true}
-        autoCapitalize="none"
-        onChangeText={setPassword}
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          value={password}
+          placeholder="Enter password"
+          placeholderTextColor="#666666"
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666666" />
+        </TouchableOpacity>
+      </View>
 
       <Pressable
         style={({ pressed }) => [
@@ -117,6 +129,17 @@ export default function Page() {
       >
         <Text style={styles.buttonText}>Sign In</Text>
       </Pressable>
+
+      <View style={styles.dividerContainer}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>or</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn}>
+        <Ionicons name="logo-google" size={20} color="#fff" />
+        <Text style={styles.googleButtonText}>Continue with Google</Text>
+      </TouchableOpacity>
 
       <View style={styles.linkContainer}>
         <Text style={{ color: '#fff' }}>Don't have an account? </Text>
@@ -159,6 +182,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 10,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 8,
+    backgroundColor: '#1e1e1e',
+    marginBottom: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: '#fff',
+  },
+  eyeButton: {
+    padding: 12,
+  },
   button: {
     backgroundColor: '#E31C25',
     paddingVertical: 14,
@@ -184,6 +225,36 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#333',
+  },
+  dividerText: {
+    color: '#666666',
+    fontSize: 14,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#1e1e1e',
+    borderWidth: 1,
+    borderColor: '#333',
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  googleButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 15,
   },
   linkContainer: {
     flexDirection: 'row',
