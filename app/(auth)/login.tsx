@@ -1,20 +1,20 @@
-import { Pressable, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native'
+// login.tsx
+import { Pressable, StyleSheet, TextInput, View, Text, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions } from 'react-native'
 import { useSignIn, useOAuth } from '@clerk/clerk-expo'
-import { type Href, Link, useRouter } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import React from 'react'
 import { colors } from '@/constants/colors'
 import * as WebBrowser from 'expo-web-browser'
 import { Ionicons } from '@expo/vector-icons'
+import BackgroundGlow from '@/components/BackgorundGlow';
 
 WebBrowser.maybeCompleteAuthSession();
 
+const { height } = Dimensions.get('window');
+
 export default function Page() {
   const { signIn, isLoaded: signInLoaded, setActive } = useSignIn()
-  const { startOAuthFlow } = useOAuth({ 
-    strategy: 'oauth_google',
-    redirectUrl: 'calispace://oauth-callback'
-  })
-
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google', redirectUrl: 'calispace://oauth-callback' })
   const router = useRouter()
 
   const [emailAddress, setEmailAddress] = React.useState('')
@@ -22,6 +22,10 @@ export default function Page() {
   const [code, setCode] = React.useState('')
   const [isVerifying, setIsVerifying] = React.useState(false)
   const [showPassword, setShowPassword] = React.useState(false)
+  const [emailError, setEmailError] = React.useState('')
+  const [passwordError, setPasswordError] = React.useState('')
+  const [generalError, setGeneralError] = React.useState('')
+  const [codeError, setCodeError] = React.useState('')
 
   const handleGoogleSignIn = async () => {
     try {
@@ -31,12 +35,16 @@ export default function Page() {
         router.replace('/(tabs)/Home')
       }
     } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2))
+      setGeneralError('Google sign-in failed. Please try again.')
     }
   }
 
   const handleSubmit = async () => {
     if (!signInLoaded || !signIn) return
+    setEmailError('')
+    setPasswordError('')
+    setGeneralError('')
+
     try {
       const result = await signIn.create({ identifier: emailAddress, password })
       if (result.status === 'complete') {
@@ -44,16 +52,20 @@ export default function Page() {
         router.replace('/(tabs)/Home')
       } else if (result.status === 'needs_second_factor' || (result.status as any) === 'needs_client_trust') {
         setIsVerifying(true)
-      } else {
-        console.error('Sign-in not complete:', result)
       }
     } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2))
+      const errors = err?.errors || []
+      errors.forEach((e: any) => {
+        if (e.code === 'form_identifier_not_found') setEmailError(e.longMessage || e.message)
+        else if (e.code === 'form_password_incorrect') setPasswordError(e.longMessage || e.message)
+        else setGeneralError(e.longMessage || e.message)
+      })
     }
   }
 
   const handleVerify = async () => {
     if (!signInLoaded || !signIn || !setActive) return
+    setCodeError('')
     try {
       const result = await signIn.attemptFirstFactor({ strategy: 'email_code', code })
       if (result.status === 'complete') {
@@ -61,116 +73,161 @@ export default function Page() {
         router.replace('/(tabs)/Home')
       }
     } catch (err: any) {
-      console.error("Verification Error:", JSON.stringify(err, null, 2))
+      const errors = err?.errors || []
+      errors.forEach((e: any) => setCodeError(e.longMessage || e.message))
     }
   }
 
   if (isVerifying) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Verify your account</Text>
-        <TextInput
-          style={styles.input}
-          value={code}
-          placeholder="Enter verification code"
-          placeholderTextColor="#666666"
-          onChangeText={setCode}
-          keyboardType="numeric"
-        />
-        <Pressable style={styles.button} onPress={handleVerify}>
-          <Text style={styles.buttonText}>Verify</Text>
-        </Pressable>
-        <Pressable style={styles.secondaryButton} onPress={() => setIsVerifying(false)}>
-          <Text style={styles.secondaryButtonText}>Back to Login</Text>
-        </Pressable>
-      </View>
+      <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
+        <BackgroundGlow />
+          <Text style={styles.title}>Verify your account</Text>
+          <Text style={styles.secondaryTitle}>Enter the code we sent to your email</Text>
+
+          <Text style={styles.label}>Verification code</Text>
+          <TextInput
+            style={[styles.input, codeError ? styles.inputError : null]}
+            value={code}
+            placeholder="Enter verification code"
+            placeholderTextColor="#666666"
+            onChangeText={(c) => { setCode(c); setCodeError('') }}
+            keyboardType="numeric"
+          />
+          {codeError ? <Text style={styles.errorText}>{codeError}</Text> : null}
+
+          <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={handleVerify}>
+            <Text style={styles.buttonText}>Verify</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryButton} onPress={() => setIsVerifying(false)}>
+            <Text style={styles.secondaryButtonText}>Back to Login</Text>
+          </Pressable>
+      </KeyboardAvoidingView>
     )
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
+    <><BackgroundGlow />
+    <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
+      
+        <View style={{ alignItems: 'center', marginBottom: 40 }}>
+          <Image source={require('@/assets/images/CaliSpace_logo.png')} style={styles.logo} />
+          <Text style={styles.name}>CaliSpace</Text>
+        </View>
 
-      <Text style={styles.label}>Email address</Text>
-      <TextInput
-        style={styles.input}
-        autoCapitalize="none"
-        value={emailAddress}
-        placeholder="Enter email"
-        placeholderTextColor="#666666"
-        onChangeText={setEmailAddress}
-        keyboardType="email-address"
-      />
+        <View style={{ marginBottom: height < 700 ? 10 : 20 }}>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.secondaryTitle}>Login to continue your progress</Text>
+        </View>
 
-      <Text style={styles.label}>Password</Text>
-      <View style={styles.passwordContainer}>
+        <Text style={styles.label}>Email address</Text>
         <TextInput
-          style={styles.passwordInput}
-          value={password}
-          placeholder="Enter password"
-          placeholderTextColor="#666666"
-          secureTextEntry={!showPassword}
+          style={[styles.input, emailError ? styles.inputError : null]}
           autoCapitalize="none"
-          onChangeText={setPassword}
+          value={emailAddress}
+          placeholder="Enter email"
+          placeholderTextColor="#666666"
+          onChangeText={(email) => { setEmailAddress(email); setEmailError('') }}
+          keyboardType="email-address"
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666666" />
+        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
+        <Text style={styles.label}>Password</Text>
+        <View style={[styles.passwordContainer, passwordError ? styles.inputError : null]}>
+          <TextInput
+            style={styles.passwordInput}
+            value={password}
+            placeholder="Enter password"
+            placeholderTextColor="#666666"
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            onChangeText={(pass) => { setPassword(pass); setPasswordError('') }}
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666666" />
+          </TouchableOpacity>
+        </View>
+        {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+        {generalError ? <Text style={styles.errorText}>{generalError}</Text> : null}
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            (!emailAddress || !password) && styles.buttonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={handleSubmit}
+          disabled={!emailAddress || !password}
+        >
+          <Text style={styles.buttonText}>Sign In</Text>
+        </Pressable>
+
+        <View style={styles.dividerContainer}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn}>
+          <Ionicons name="logo-google" size={20} color={colors.Ptext} />
+          <Text style={styles.googleButtonText}>Continue with Google</Text>
         </TouchableOpacity>
-      </View>
 
-      <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          (!emailAddress || !password) && styles.buttonDisabled,
-          pressed && styles.buttonPressed,
-        ]}
-        onPress={handleSubmit}
-        disabled={!emailAddress || !password}
-      >
-        <Text style={styles.buttonText}>Sign In</Text>
-      </Pressable>
-
-      <View style={styles.dividerContainer}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>or</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn}>
-        <Ionicons name="logo-google" size={20} color="#fff" />
-        <Text style={styles.googleButtonText}>Continue with Google</Text>
-      </TouchableOpacity>
-
-      <View style={styles.linkContainer}>
-        <Text style={{ color: '#fff' }}>Don't have an account? </Text>
-        <Link href="/(auth)/signup">
-          <Text style={{ color: colors.icons, fontWeight: 'bold' }}>Sign up</Text>
-        </Link>
-      </View>
-    </View>
+        <View style={styles.linkContainer}>
+          <Text style={{ color: colors.Ptext, fontFamily: 'Poppins-Regular' }}>Don't have an account? </Text>
+          <Link href="/(auth)/signup">
+            <Text style={{ color: colors.icons, fontFamily: 'Poppins-SemiBold' }}>Sign up</Text>
+          </Link>
+        </View>
+    </KeyboardAvoidingView>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
     gap: 12,
-    backgroundColor: '#151414',
     justifyContent: 'center',
+    flexGrow: 1,
+  },
+  verifyContainer: {
+    padding: 20,
+    gap: 12,
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
+  logo: {
+    height: height * 0.11,
+    width: height * 0.13,
+    alignSelf: 'center',
+  },
+  name: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#D70000',
+    fontSize: height < 700 ? 24 : 30,
+    letterSpacing: -1,
+    alignSelf: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 24,
+  fontSize: height < 700 ? 28 : 35,
+
+  fontFamily: 'Poppins-Bold',
+  color: colors.Ptext,
+  marginBottom: 0,
+  textAlign: 'center',
+},
+  secondaryTitle: {
+    fontSize: height < 700 ? 13 : 16,
+    fontFamily: 'Poppins-Regular',
+    color: colors.Stext,
+    marginBottom: height < 700 ? 5 : 10,
     textAlign: 'center',
   },
   label: {
-    fontWeight: '600',
+    fontFamily: 'Poppins-SemiBold',
     fontSize: 14,
-    color: '#fff',
-    marginBottom: 4,
+    color: colors.Ptext,
   },
   input: {
     borderWidth: 1,
@@ -178,9 +235,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
+    fontFamily: 'Poppins-Regular',
     backgroundColor: '#1e1e1e',
-    color: '#fff',
-    marginBottom: 10,
+    color: colors.Ptext,
+  },
+  inputError: {
+    borderColor: '#D70000',
+  },
+  errorText: {
+    color: '#D70000',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 12,
+    marginTop: -8,
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -189,19 +255,19 @@ const styles = StyleSheet.create({
     borderColor: '#333',
     borderRadius: 8,
     backgroundColor: '#1e1e1e',
-    marginBottom: 10,
   },
   passwordInput: {
     flex: 1,
     padding: 12,
     fontSize: 16,
-    color: '#fff',
+    fontFamily: 'Poppins-Regular',
+    color: colors.Ptext,
   },
   eyeButton: {
     padding: 12,
   },
   button: {
-    backgroundColor: '#E31C25',
+    backgroundColor: '#D70000',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -214,8 +280,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: colors.Ptext,
+    fontFamily: 'Poppins-SemiBold',
     fontSize: 16,
   },
   secondaryButton: {
@@ -223,8 +289,8 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   secondaryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.Ptext,
+    fontFamily: 'Poppins-SemiBold',
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -238,6 +304,7 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: '#666666',
+    fontFamily: 'Poppins-Regular',
     fontSize: 14,
   },
   googleButton: {
@@ -252,8 +319,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   googleButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.Ptext,
+    fontFamily: 'Poppins-SemiBold',
     fontSize: 15,
   },
   linkContainer: {
