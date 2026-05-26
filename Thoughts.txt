@@ -26,10 +26,10 @@ feature2 ✔
 feature3 ✔
 feature4 ✔
 feature5 ✔
-signup
-login
-home
-workout
+signup ✔
+login ✔
+home ✔
+workout 
 [day]
 edit/create exercise
 tools
