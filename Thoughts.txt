@@ -29,9 +29,10 @@ feature5 ✔
 signup ✔
 login ✔
 home ✔
-workout 
-[day]
-edit/create exercise
+workout ✔
+[day] ✔
+edit/create exercise ✔
+edit/create workout ✔
 tools
 pushups counter
 timer

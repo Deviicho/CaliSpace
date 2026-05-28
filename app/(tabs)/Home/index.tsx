@@ -73,7 +73,7 @@ export default function HomeScreen() {
         <View>
           <Text style={[styles.greetingTextS, {marginLeft: 20}]}>Quote of the day</Text>
           <View style={[styles.dividerLine, {width: '90%', marginBottom: 7}]} />
-          <Text style={[styles.greetingTextS, {marginLeft: 20, fontStyle: 'italic', fontSize: 13, lineHeight: 22}]}>{activeQuote}</Text>
+          <Text style={[styles.greetingTextS, {marginLeft: 20, fontStyle: 'italic', fontSize: 13, maxWidth: '90%'}]}>{activeQuote}</Text>
         </View>
     </View>
     </>

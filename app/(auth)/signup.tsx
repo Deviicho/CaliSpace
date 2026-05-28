@@ -207,6 +207,7 @@ const styles = StyleSheet.create({
     gap: 12,
     justifyContent: 'center',
     flexGrow: 1,
+    backgroundColor: '#151414'
   },
   verifyContainer: {
     padding: 20,
