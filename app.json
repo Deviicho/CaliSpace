@@ -4,7 +4,7 @@
     "slug": "CaliSpace",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/CaliSpace_logo.png",
+    "icon": "./assets/images/icon(smallest).png",
     "scheme": "calispace",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     "android": {
     "adaptiveIcon": {
       "backgroundColor": "#151414",
-      "foregroundImage": "./assets/images/CaliSpace_logo.png"
+      "foregroundImage": "./assets/images/icon(smallest).png"
     },
     "edgeToEdgeEnabled": true,
     "predictiveBackGestureEnabled": false,
@@ -29,7 +29,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/CaliSpace_logo.png",
+          "image": "./assets/images/splashscreenIcon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#151414",

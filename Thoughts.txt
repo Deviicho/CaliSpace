@@ -1,23 +1,19 @@
 tasks:
-understand these fundimentals:
-styling (basics & more advanced things like animations)
-figure out the blur and center thing
-
-
+make the app faster and smoother
+check out the login and signup page if it require limits
+make the tabs navigatable by swapping right and left
+check if the disigns are responsive
 ---
 problems:
 ---
 questions:
 Turso configurations
 how will i make the tools is it gonna be a module already done thing or am i gonna have to make it from scratch
-is the pushups counter a math related task
 how to make the app offline and sync-when-connected
-how to make the user experience smooth
+how to make the user experience smoother and faster
 how to make the app work on iphone and android without having an apple device to test it
 ---
 random thoughts:
-add a measurment format specifier so the user can set the exercise to seconds or minutes or reps 
-make sure all the tools needed are free without expirey date
 ---
 pages done:
 Greeting ✔
@@ -33,7 +29,7 @@ workout ✔
 [day] ✔
 edit/create exercise ✔
 edit/create workout ✔
-tools
+tools ✔
 pushups counter
 timer
 stopwatch
