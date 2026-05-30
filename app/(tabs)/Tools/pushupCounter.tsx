@@ -6,30 +6,39 @@ import {
   StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Accelerometer } from 'expo-sensors';
 import { useEffect, useRef, useState } from 'react';
 import { colors } from '@/constants/colors';
 
-const THRESHOLD_DOWN = 1.3;
-const THRESHOLD_UP = 1.1;
+const DEBOUNCE_MS = 600;
 
 export default function PushupCounterScreen() {
   const router = useRouter();
   const [count, setCount] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const isDown = useRef(false);
+  const isNear = useRef(false);
+  const lastRepTime = useRef(0);
   const subscription = useRef<any>(null);
 
-  const startListening = () => {
-    Accelerometer.setUpdateInterval(100);
-    subscription.current = Accelerometer.addListener(({ z }) => {
-      const absZ = Math.abs(z);
-      if (absZ > THRESHOLD_DOWN && !isDown.current) {
-        isDown.current = true;
+  const startListening = async () => {
+    const ExpoProximity = require('expo-proximity');
+    const isAvailable = await ExpoProximity.isAvailableAsync();
+    if (!isAvailable) {
+      alert('Proximity sensor is not available on this device.');
+      return;
+    }
+
+    ExpoProximity.setUpdateInterval(100);
+    subscription.current = ExpoProximity.addListener(({ near }: { near: boolean }) => {
+      const now = Date.now();
+      if (near && !isNear.current) {
+        isNear.current = true;
+        if (now - lastRepTime.current > DEBOUNCE_MS) {
+          lastRepTime.current = now;
+          setCount((prev) => prev + 1);
+        }
       }
-      if (absZ < THRESHOLD_UP && isDown.current) {
-        isDown.current = false;
-        setCount((prev) => prev + 1);
+      if (!near && isNear.current) {
+        isNear.current = false;
       }
     });
   };
@@ -37,7 +46,8 @@ export default function PushupCounterScreen() {
   const stopListening = () => {
     subscription.current?.remove();
     subscription.current = null;
-    isDown.current = false;
+    isNear.current = false;
+    lastRepTime.current = 0;
   };
 
   const handleStartStop = () => {
@@ -79,6 +89,14 @@ export default function PushupCounterScreen() {
           <Text style={styles.count}>{count}</Text>
         </View>
       </View>
+
+      {!isRunning && (
+        <View style={styles.warning}>
+          <Text style={styles.warningText}>
+            📱 Place your phone flat on the floor under your chest, screen facing up, then press Start.
+          </Text>
+        </View>
+      )}
 
       <View style={styles.buttons}>
         <TouchableOpacity style={styles.button} onPress={handleStartStop}>
@@ -127,7 +145,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 30,
     elevation: 20,
-    marginBottom: 56,
+    marginBottom: 32,
   },
   circleInner: {
     width: 180,
@@ -142,6 +160,23 @@ const styles = StyleSheet.create({
     fontSize: 80,
     fontFamily: 'Poppins-bold',
     lineHeight: 90,
+  },
+  warning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#1E1C1C',
+    borderWidth: 0.5,
+    borderColor: '#ffffff21',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 24,
+    width: '100%',
+  },
+  warningText: {
+    flex: 1,
+    color: colors.icons,
+    fontSize: 13,
+    fontFamily: 'Poppins-bold',
   },
   buttons: {
     width: '100%',
