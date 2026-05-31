@@ -29,7 +29,7 @@ export default function GreetingScreen() {
     <View style={styles.container}>
       
       <ImageBackground 
-        source={require('@/assets/images/fittness background.png')} 
+        source={require('@/assets/images/greetingBackground.png')} 
         style={styles.background}
         resizeMode="cover"
       >

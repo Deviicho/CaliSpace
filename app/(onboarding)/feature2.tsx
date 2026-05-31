@@ -6,7 +6,7 @@ import { colors } from '@/constants/colors'
 import { wheights } from '@/constants/wheights'
 import { Text } from '@react-navigation/elements';
 import FeatureStructure from '@/components/FeatureStructure';
-import Icon from '../../assets/icons/pushups_counter_filled_icon 1.svg';
+import Icon from '../../assets/icons/pushups_counter_filled_icon.svg';
 
 export default function Feature2Screen() {
   const router = useRouter()

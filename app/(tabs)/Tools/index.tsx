@@ -4,7 +4,7 @@ import { colors } from '@/constants/colors';
 import { Text } from '@react-navigation/elements';
 import StopwatchImg from '../../../assets/icons/timer-fill 1.svg';
 import TimerImg from '../../../assets/icons/alarm-fill 1.svg';
-import PushupCounterImg from '../../../assets/icons/pushups_counter_filled_icon 1.svg';
+import PushupCounterImg from '../../../assets/icons/pushups_counter_filled_icon.svg';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ToolsScreen() {
