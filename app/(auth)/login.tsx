@@ -1,5 +1,4 @@
-// login.tsx
-import { Pressable, StyleSheet, TextInput, View, Text, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Dimensions } from 'react-native'
+import { Pressable, StyleSheet, TextInput, View, Text, Image, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions } from 'react-native'
 import { useSignIn, useOAuth } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
 import React from 'react'
@@ -80,8 +79,9 @@ export default function Page() {
 
   if (isVerifying) {
     return (
-      <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
+      <View style={{ flex: 1 }}>
         <BackgroundGlow />
+        <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
           <Text style={styles.title}>Verify your account</Text>
           <Text style={styles.secondaryTitle}>Enter the code we sent to your email</Text>
 
@@ -102,14 +102,15 @@ export default function Page() {
           <Pressable style={styles.secondaryButton} onPress={() => setIsVerifying(false)}>
             <Text style={styles.secondaryButtonText}>Back to Login</Text>
           </Pressable>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     )
   }
 
   return (
-    <><BackgroundGlow />
-    <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
-      
+    <View style={{ flex: 1 }}>
+      <BackgroundGlow />
+      <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
         <View style={{ alignItems: 'center', marginBottom: 40 }}>
           <Image source={require('@/assets/images/CaliSpace_logo.png')} style={styles.logo} />
           <Text style={styles.name}>CaliSpace</Text>
@@ -179,8 +180,8 @@ export default function Page() {
             <Text style={{ color: colors.icons, fontFamily: 'Poppins-SemiBold' }}>Sign up</Text>
           </Link>
         </View>
-    </KeyboardAvoidingView>
-    </>
+      </KeyboardAvoidingView>
+    </View>
   )
 }
 
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
     gap: 12,
     justifyContent: 'center',
     flexGrow: 1,
-    backgroundColor: '#151414'
+    backgroundColor: 'transparent',
   },
   verifyContainer: {
     padding: 20,
@@ -211,13 +212,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   title: {
-  fontSize: height < 700 ? 28 : 35,
-
-  fontFamily: 'Poppins-Bold',
-  color: colors.Ptext,
-  marginBottom: 0,
-  textAlign: 'center',
-},
+    fontSize: height < 700 ? 28 : 35,
+    fontFamily: 'Poppins-Bold',
+    color: colors.Ptext,
+    marginBottom: 0,
+    textAlign: 'center',
+  },
   secondaryTitle: {
     fontSize: height < 700 ? 13 : 16,
     fontFamily: 'Poppins-Regular',

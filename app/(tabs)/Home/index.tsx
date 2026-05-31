@@ -18,7 +18,9 @@ export default function HomeScreen() {
   const router = useRouter();
   const {user} = useUser();
   const [activeQuote, setActiveQuote] = useState('');
-  const displayName = user?.username ? user.username : 'CaliPal';
+  const displayName = user?.username 
+  ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
+  : 'CaliPal';
 
   useEffect(() => {
     // Pick a random index from the 100 quotes

@@ -61,9 +61,35 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen name="Tools/pushupCounter" options={{ href: null }} />
-      <Tabs.Screen name="Tools/stopWatch" options={{ href: null }} />
-      <Tabs.Screen name="Tools/timer" options={{ href: null }} />
+      {/* Turning off the bottom tab bar on your requested utility/sub-screens */}
+      <Tabs.Screen 
+        name="Tools/pushupCounter" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }} 
+      />
+      <Tabs.Screen 
+        name="Tools/stopWatch" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }} 
+      />
+      <Tabs.Screen 
+        name="Tools/timer" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }} 
+      />
+      <Tabs.Screen 
+        name="Workout/[day]" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }} 
+      />
     </Tabs>
   );
 }

@@ -63,7 +63,7 @@ export default function ToolsScreen() {
       <View style={styles.toolBlock}>
           <View style={{width: '30%', alignItems: 'center', justifyContent: 'center'}}><PushupCounterImg fill={colors.accent} width={90} height={90} /></View>
           <View style={{flexDirection: 'column', gap: 4,width: '50%', paddingTop: 5}}>
-            <Text style={[styles.Ptext, {fontSize: 23}]}>Stopwatch</Text>
+            <Text style={[styles.Ptext, {fontSize: 20}]}>PushupCounter</Text>
             <Text style={[styles.Stext, {fontSize: 14, maxWidth: '100%'}]}>Figure out how long can you last on an exercise.</Text>
           </View>
           <View style={{width: '20%', justifyContent: 'center', alignItems: 'center'}}><View style={{backgroundColor: '#2c2c2c',

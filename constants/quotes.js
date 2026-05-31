@@ -75,6 +75,7 @@ export const MOTIVATIONAL_QUOTES = [
   "Opportunities don't happen. You create them.",
   "Too many of us are not living our dreams because we are living our fears.",
   "There is only one way to avoid criticism: do nothing, say nothing, and be nothing.",
+  "Let it Happen. ",
   "The man who moves a mountain begins by carrying away small stones.",
   "When you feel like quitting, think about why you started.",
   "The only way to do great work is to love what you do.",

@@ -98,7 +98,10 @@ export default function WorkoutScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
+        <>
+        <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40, marginBottom: 10 }} />
+        <Text style={{color: '#d70000', alignSelf: 'center'}}>loading</Text>
+        </>
       ) : (
         <View style={styles.listContainer}>
           <FlatList

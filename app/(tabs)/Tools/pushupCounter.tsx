@@ -8,6 +8,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { colors } from '@/constants/colors';
+import { useProximity } from 'expo-proximity'; // Import the hook at the top level
 
 const DEBOUNCE_MS = 600;
 
@@ -15,67 +16,52 @@ export default function PushupCounterScreen() {
   const router = useRouter();
   const [count, setCount] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  
+  // 1. Grab the native sensor state directly using the hook
+  const { proximityState } = useProximity();
+  
   const isNear = useRef(false);
   const lastRepTime = useRef(0);
-  const subscription = useRef<any>(null);
 
-  const startListening = async () => {
-    const ExpoProximity = require('expo-proximity');
-    const isAvailable = await ExpoProximity.isAvailableAsync();
-    if (!isAvailable) {
-      alert('Proximity sensor is not available on this device.');
-      return;
+  // 2. Track reps inside a useEffect watching the sensor state
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const now = Date.now();
+
+    // 'near' is true when the chest is close to the sensor
+    if (proximityState === true && !isNear.current) {
+      isNear.current = true;
+      if (now - lastRepTime.current > DEBOUNCE_MS) {
+        lastRepTime.current = now;
+        setCount((prev) => prev + 1);
+      }
     }
+    
+    // 'near' turns false when pushing back up
+    if (proximityState === false && isNear.current) {
+      isNear.current = false;
+    }
+  }, [proximityState, isRunning]);
 
-    ExpoProximity.setUpdateInterval(100);
-    subscription.current = ExpoProximity.addListener(({ near }: { near: boolean }) => {
-      const now = Date.now();
-      if (near && !isNear.current) {
-        isNear.current = true;
-        if (now - lastRepTime.current > DEBOUNCE_MS) {
-          lastRepTime.current = now;
-          setCount((prev) => prev + 1);
-        }
-      }
-      if (!near && isNear.current) {
-        isNear.current = false;
-      }
-    });
+  const handleStartStop = () => {
+    setIsRunning((prev) => !prev);
+    // Reset temporary states when toggling
+    isNear.current = false;
   };
 
-  const stopListening = () => {
-    subscription.current?.remove();
-    subscription.current = null;
+  const handleReset = () => {
+    setIsRunning(false);
+    setCount(0);
     isNear.current = false;
     lastRepTime.current = 0;
   };
 
-  const handleStartStop = () => {
-    if (isRunning) {
-      stopListening();
-      setIsRunning(false);
-    } else {
-      startListening();
-      setIsRunning(true);
-    }
-  };
-
-  const handleReset = () => {
-    stopListening();
-    setIsRunning(false);
-    setCount(0);
-  };
-
   const handleQuit = () => {
-    stopListening();
     setIsRunning(false);
     setCount(0);
-    router.back();
+    router.replace('/(tabs)/Tools');
   };
-
-  useEffect(() => {
-    return () => stopListening();
-  }, []);
 
   return (
     <View style={styles.container}>
@@ -85,28 +71,29 @@ export default function PushupCounterScreen() {
       <Text style={styles.subtitle}>Focus on your workout, we will count for you</Text>
 
       <View style={styles.circleOuter}>
-        <View style={styles.circleInner}>
+        
           <Text style={styles.count}>{count}</Text>
-        </View>
+        
       </View>
 
       {!isRunning && (
         <View style={styles.warning}>
           <Text style={styles.warningText}>
-            📱 Place your phone flat on the floor under your chest, screen facing up, then press Start.
+            Place your phone on the floor under your chest, then press Start.
+            (the sensor's position is near your phone's  front camera)
           </Text>
         </View>
       )}
 
       <View style={styles.buttons}>
-        <TouchableOpacity style={styles.button} onPress={handleStartStop}>
+        <TouchableOpacity style={[styles.button, {backgroundColor: '#6d00002a'}]} onPress={handleStartStop}>
           <Text style={styles.buttonText}>{isRunning ? 'Stop' : 'Start'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleReset}>
+        <TouchableOpacity style={[styles.button, {backgroundColor: '#6b1f1f2a'}]} onPress={handleReset}>
           <Text style={styles.buttonText}>Reset</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleQuit}>
-          <Text style={styles.buttonText}>Quit</Text>
+        <TouchableOpacity style={[styles.button, {borderColor: '#ff000021', }]} onPress={handleQuit}>
+          <Text style={[styles.buttonText, {color: colors.Stext}]}>Quit</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -134,36 +121,30 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   circleOuter: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: '#1a0000',
+    width: 240,
+    height: 240,
+    borderRadius: 170,
+    backgroundColor: '#181818',
+    borderColor: '#ffffff41',
+    borderWidth: 0.5,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#D70000',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 30,
-    elevation: 20,
+    elevation: 40,
     marginBottom: 32,
-  },
-  circleInner: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: '#1e0000',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   count: {
     color: '#D70000',
-    fontSize: 80,
-    fontFamily: 'Poppins-bold',
+    fontSize: 115,
+    fontFamily: 'Poppins-SemiBold',
     lineHeight: 90,
   },
   warning: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     backgroundColor: '#1E1C1C',
     borderWidth: 0.5,
     borderColor: '#ffffff21',
@@ -177,6 +158,8 @@ const styles = StyleSheet.create({
     color: colors.icons,
     fontSize: 13,
     fontFamily: 'Poppins-bold',
+    textAlign: 'center'
+
   },
   buttons: {
     width: '100%',
