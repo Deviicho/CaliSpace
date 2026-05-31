@@ -42,7 +42,7 @@ export default function SettingsScreen() {
 
       {/* Notifications — placeholder */}
       {/* TODO: wire up push notification permissions and weekly reminder logic */}
-      <View style={styles.section}>
+      {/* <View style={styles.section}>
         <View style={styles.row}>
           <View style={styles.rowLeft}>
             <Ionicons name="notifications-outline" size={20} color={colors.icons} />
@@ -55,7 +55,7 @@ export default function SettingsScreen() {
             thumbColor={colors.Ptext}
           />
         </View>
-      </View>
+      </View> */}
 
       {/* Change Name */}
       <View style={styles.section}>

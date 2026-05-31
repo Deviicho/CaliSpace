@@ -1,9 +1,8 @@
 import { Link } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { TouchableOpacity, View, Image } from 'react-native'
 import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors'
-import { wheights } from '@/constants/wheights'
 import { Text } from '@react-navigation/elements';
 import WorkoutPlanImg from '../../../assets/icons/workout_plan_builder_filled.svg';
 import StopwatchImg from '../../../assets/icons/timer-fill 1.svg';
@@ -13,89 +12,101 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-expo';
 
 export default function HomeScreen() {
-  const width = 40;
-  const height = 40;
+  const iconSize = 40;
   const router = useRouter();
-  const {user} = useUser();
+  const { user } = useUser();
   const [activeQuote, setActiveQuote] = useState('');
-  const displayName = user?.username 
-  ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
-  : 'CaliPal';
+  const displayName = user?.username
+    ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
+    : 'CaliPal';
 
   useEffect(() => {
-    // Pick a random index from the 100 quotes
     const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
     setActiveQuote(MOTIVATIONAL_QUOTES[randomIndex]);
   }, []);
+
   return (
-    <>
-    <View style={styles.container}>
-        <View style={styles.greetingBlock}>
-          <Text style={styles.greetingTextP}>Good evening {displayName}</Text>
-          <Text style={styles.greetingTextS}>Stay consistent, train smart</Text>
-        </View>
-        <Link href={'../Workout'} style={styles.workoutShortcutLink}>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.greetingBlock}>
+        <Text style={styles.greetingTextP}>Good evening {displayName}</Text>
+        <Text style={styles.greetingTextS}>Stay consistent, train smart</Text>
+      </View>
+
+      <Link href={'../Workout'} style={styles.workoutShortcutLink}>
         <View style={styles.workoutShortcutBlock}>
           <View style={styles.upperBlock}>
-          <WorkoutPlanImg style={styles.workouticon} width={width} height={height} />
-          <Text style={[styles.greetingTextP, {fontSize: 23, marginTop:5}]}>Today's workout</Text>
+            <WorkoutPlanImg style={styles.workouticon} width={iconSize} height={iconSize} />
+            <Text style={[styles.greetingTextP, { fontSize: 23, marginTop: 5 }]}>Today's workout</Text>
           </View>
           <View style={styles.dividerLine} />
-          <Text style={[styles.greetingTextS, {fontSize: 15, marginTop:10, marginLeft: 15, color:colors.Ptext}]}>Check what do you have for today</Text> 
+          <Text style={[styles.greetingTextS, { fontSize: 15, marginTop: 10, marginLeft: 15, color: colors.Ptext }]}>
+            Check what do you have for today
+          </Text>
         </View>
-        </Link>
+      </Link>
 
-        <Text style={[styles.greetingTextS, {marginLeft: 20}]}>Tools</Text>
-        <View style={styles.timingShortcutsBlock}>
-          <Link href={'../Tools/stopWatch'} style={styles.timerShortcutLink}>
+      <Text style={[styles.greetingTextS, { marginLeft: 20 }]}>Tools</Text>
+      <View style={styles.timingShortcutsBlock}>
+        <Link href={'../Tools/stopWatch'} style={styles.timerShortcutLink}>
           <View style={styles.timerShortcut}>
             <StopwatchImg fill={colors.accent} width={100} height={100} />
-            <Text style={[styles.greetingTextP, {fontSize: 20}]}>StopWatch</Text>
+            <Text style={[styles.greetingTextP, { fontSize: 20 }]}>StopWatch</Text>
           </View>
-          </Link>
-          <Link href={'/(tabs)/Tools/timer'} style={styles.timerShortcutLink}>
+        </Link>
+        <Link href={'/(tabs)/Tools/timer'} style={styles.timerShortcutLink}>
           <View style={styles.timerShortcut}>
             <TimerImg fill={colors.accent} width={100} height={100} />
-            <Text style={[styles.greetingTextP, {fontSize: 20}]}>Timer</Text>
+            <Text style={[styles.greetingTextP, { fontSize: 20 }]}>Timer</Text>
           </View>
-          </Link>
+        </Link>
+      </View>
+
+      <View style={styles.pushupcounterShortcutBlock}>
+        <View style={styles.upperBlock}>
+          <Text style={[styles.greetingTextP, { fontSize: 23, marginTop: 10, marginLeft: 15 }]}>Pushup Counter</Text>
         </View>
-        <View style={styles.pushupcounterShortcutBlock}>
-          <View style={styles.upperBlock}>
-          <Text style={[styles.greetingTextP, {fontSize: 23, marginTop:10, marginLeft:15}]}>Pushup Counter</Text>
-          </View>
-          <View style={styles.dividerLine} />
-          <Text style={[styles.greetingTextS, {fontSize: 15, marginTop:5, marginLeft: 15, color:colors.Ptext}]}>Place your phone under your chest to start</Text>
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={() => router.push('/(tabs)/Tools/pushupCounter')}>
-                      <Text style={[styles.greetingTextP, {alignSelf: 'center', marginBottom: 2}]}>Start</Text>
-          </TouchableOpacity>
-        </View>
-        <View>
-          <Text style={[styles.greetingTextS, {marginLeft: 20}]}>Quote of the day</Text>
-          <View style={[styles.dividerLine, {width: '90%', marginBottom: 7}]} />
-          <Text style={[styles.greetingTextS, {marginLeft: 20, fontStyle: 'italic', fontSize: 13, maxWidth: '90%'}]}>{activeQuote}</Text>
-        </View>
-    </View>
-    </>
+        <View style={styles.dividerLine} />
+        <Text style={[styles.greetingTextS, { fontSize: 15, marginTop: 5, marginLeft: 15, color: colors.Ptext }]}>
+          Place your phone under your chest to start
+        </Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/(tabs)/Tools/pushupCounter')}
+        >
+          <Text style={[styles.greetingTextP, { alignSelf: 'center', marginBottom: 2 }]}>Start</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ paddingBottom: 20 }}>
+        <Text style={[styles.greetingTextS, { marginLeft: 20 }]}>Quote of the day</Text>
+        <View style={[styles.dividerLine, { width: '90%', marginBottom: 7 }]} />
+        <Text style={[styles.greetingTextS, { marginLeft: 20, fontStyle: 'italic', fontSize: 13, maxWidth: '90%' }]}>
+          {activeQuote}
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#151414',
+  },
   container: {
     flexDirection: 'column',
     gap: 15,
     paddingTop: 10,
     width: '100%',
-    height: '100%',
-
   },
   greetingTextP: {
     color: colors.Ptext,
     fontFamily: 'Poppins-bold',
     fontSize: 24,
-    
   },
   greetingTextS: {
     color: colors.Stext,
@@ -105,11 +116,11 @@ const styles = StyleSheet.create({
   greetingBlock: {
     paddingLeft: 20,
   },
-  workoutShortcutLink:{
-    backgroundColor:'#a0080886',
+  workoutShortcutLink: {
+    backgroundColor: '#a0080886',
     width: '90%',
-    paddingBottom: 10,  
-    alignSelf: 'center', 
+    paddingBottom: 10,
+    alignSelf: 'center',
     borderColor: '#ffffff41',
     borderWidth: 0.5,
     borderRadius: 5,
@@ -117,17 +128,15 @@ const styles = StyleSheet.create({
   workoutShortcutBlock: {
     width: '100%',
     flexDirection: 'column',
-
   },
   pushupcounterShortcutBlock: {
-    backgroundColor:'#202020',
+    backgroundColor: '#202020',
     width: '90%',
-    paddingBottom: 10,  
-    alignSelf: 'center', 
+    paddingBottom: 10,
+    alignSelf: 'center',
     borderColor: '#ffffff41',
     borderWidth: 0.5,
     borderRadius: 5,
-
   },
   button: {
     backgroundColor: colors.accent,
@@ -142,7 +151,7 @@ const styles = StyleSheet.create({
   workouticon: {
     color: colors.icons,
     marginTop: 10,
-    marginLeft: 15
+    marginLeft: 15,
   },
   upperBlock: {
     flexDirection: 'row',
@@ -151,17 +160,16 @@ const styles = StyleSheet.create({
   },
   dividerLine: {
     width: '92%',
-    height: .5,
+    height: 0.5,
     backgroundColor: '#e2e2e254',
     marginTop: 10,
-    alignSelf: 'center'
-    
+    alignSelf: 'center',
   },
   timingShortcutsBlock: {
     flexDirection: 'row',
     gap: 14,
     width: '90%',
-    marginLeft: 20
+    marginLeft: 20,
   },
   timerShortcut: {
     width: '100%',
