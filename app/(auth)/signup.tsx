@@ -1,5 +1,5 @@
 // signup.tsx
-import { TouchableOpacity, Pressable, StyleSheet, Image, TextInput, View, Text, KeyboardAvoidingView, Platform, ScrollView, Dimensions } from 'react-native'
+import { TouchableOpacity, Pressable, StyleSheet, Image, TextInput, View, Text, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert } from 'react-native'
 import { colors } from '@/constants/colors'
 import { useAuth, useSignUp, useOAuth } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
@@ -38,6 +38,13 @@ export default function Page() {
       }
     } catch (err: any) {
       setGeneralError('Google sign-up failed. Please try again.')
+      
+      // DEBUG ALERT FOR GOOGLE SSO SIGNUP
+      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown OAuth Error";
+      Alert.alert(
+        "🚨 SIGNUP GOOGLE DEBUG",
+        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
+      );
     }
   }
 
@@ -52,6 +59,13 @@ export default function Page() {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
       setPendingVerification(true);
     } catch (err: any) {
+      // DEBUG ALERT FOR MANUAL SIGNUP FLOW
+      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown Manual Signup Error";
+      Alert.alert(
+        "🚨 MANUAL SIGNUP DEBUG",
+        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
+      );
+
       const errors = err?.errors || []
       errors.forEach((e: any) => {
         if (e.meta?.paramName === 'email_address') setEmailError(e.longMessage || e.message)
@@ -71,6 +85,13 @@ export default function Page() {
         router.replace('/(tabs)/Home')
       }
     } catch (err: any) {
+      // DEBUG ALERT FOR SIGNUP VERIFICATION STEP
+      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown Verification Error";
+      Alert.alert(
+        "🚨 SIGNUP VERIFICATION DEBUG",
+        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
+      );
+
       const errors = err?.errors || []
       errors.forEach((e: any) => setCodeError(e.longMessage || e.message))
     }
@@ -228,13 +249,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   title: {
-  fontSize: height < 700 ? 24 : 30, // signup
-  // fontSize: height < 700 ? 28 : 35, // login
-  fontFamily: 'Poppins-Bold',
-  color: colors.Ptext,
-  marginBottom: 0, // was height-based
-  textAlign: 'center',
-},
+    fontSize: height < 700 ? 24 : 30,
+    fontFamily: 'Poppins-Bold',
+    color: colors.Ptext,
+    marginBottom: 0,
+    textAlign: 'center',
+  },
   secondaryTitle: {
     fontSize: height < 700 ? 13 : 16,
     fontFamily: 'Poppins-Regular',
