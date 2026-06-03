@@ -24,34 +24,41 @@ function InitialLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [ready, setReady] = useState(false); // ADDED
+  const [navigationReady, setNavigationReady] = useState(false);
 
   useEffect(() => {
     if (!isLoaded) return;
 
-    const navigate = async () => {
-      const val = await AsyncStorage.getItem('onboarding_complete');
-      const seenOnboarding = val === 'true';
+    const determineRoute = async () => {
+      try {
+        const val = await AsyncStorage.getItem('onboarding_complete');
+        const seenOnboarding = val === 'true';
+        const inAuthGroup = segments[0] === '(auth)';
+        const inOnboardingGroup = segments[0] === '(onboarding)';
 
-      const inAuthGroup = segments[0] === '(auth)';
-      const inOnboardingGroup = segments[0] === '(onboarding)';
-
-      if (isSignedIn && (inAuthGroup || inOnboardingGroup)) {
-        router.replace('/(tabs)/Home');
-      } else if (seenOnboarding && !isSignedIn && !inAuthGroup) {
-        router.replace('/(auth)/signup');
-      } else if (!seenOnboarding && !inOnboardingGroup) {
-        router.replace('/(onboarding)');
+        if (isSignedIn) {
+          if (inAuthGroup || inOnboardingGroup) {
+            router.replace('/(tabs)/Home');
+          }
+        } else {
+          if (seenOnboarding && !inAuthGroup) {
+            router.replace('/(auth)/signup');
+          } else if (!seenOnboarding && !inOnboardingGroup) {
+            router.replace('/(onboarding)');
+          }
+        }
+      } catch (e) {
+        console.warn('Routing validation error:', e);
+      } finally {
+        setNavigationReady(true);
       }
-
-      await SplashScreen.hideAsync();
-      setReady(true); // ADDED
     };
 
-    navigate();
+    determineRoute();
   }, [isSignedIn, isLoaded, segments]);
 
-  if (!ready) return null; // ADDED
+  // Don't block rendering — show nothing briefly instead of indefinite blank
+  if (!navigationReady) return null;
 
   return (
     <Stack
@@ -90,14 +97,20 @@ function InitialLayout() {
 }
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     'Poppins-Regular': Poppins_400Regular,
     'Poppins-SemiBold': Poppins_600SemiBold,
     'Poppins-Bold': Poppins_700Bold,
     'Poppins-Black': Poppins_900Black,
   });
 
-  if (!loaded && !error) return null;
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>

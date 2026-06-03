@@ -1,5 +1,4 @@
-// signup.tsx
-import { TouchableOpacity, Pressable, StyleSheet, Image, TextInput, View, Text, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert } from 'react-native'
+import { TouchableOpacity, Pressable, StyleSheet, Image, TextInput, View, Text, KeyboardAvoidingView, Platform, Dimensions } from 'react-native'
 import { colors } from '@/constants/colors'
 import { useAuth, useSignUp, useOAuth } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
@@ -30,21 +29,18 @@ export default function Page() {
   const [codeError, setCodeError] = React.useState('')
 
   const handleGoogleSignUp = async () => {
+    setGeneralError('')
     try {
-      const { createdSessionId, setActive: setActiveSession } = await startOAuthFlow()
+      const result = await startOAuthFlow()
+      const { createdSessionId, setActive: setActiveSession } = result
       if (createdSessionId && setActiveSession) {
         await setActiveSession({ session: createdSessionId })
         router.replace('/(tabs)/Home')
+      } else {
+        setGeneralError('Google sign-up was cancelled or failed. Please try again.')
       }
     } catch (err: any) {
-      setGeneralError('Google sign-up failed. Please try again.')
-      
-      // DEBUG ALERT FOR GOOGLE SSO SIGNUP
-      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown OAuth Error";
-      Alert.alert(
-        "🚨 SIGNUP GOOGLE DEBUG",
-        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
-      );
+      setGeneralError('Google sign-up failed. Verify your connection or Google credentials.')
     }
   }
 
@@ -59,18 +55,20 @@ export default function Page() {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
       setPendingVerification(true);
     } catch (err: any) {
-      // DEBUG ALERT FOR MANUAL SIGNUP FLOW
-      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown Manual Signup Error";
-      Alert.alert(
-        "🚨 MANUAL SIGNUP DEBUG",
-        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
-      );
-
       const errors = err?.errors || []
+      if (errors.length === 0) {
+        setGeneralError(err?.message || 'An error occurred during account creation.')
+        return
+      }
       errors.forEach((e: any) => {
-        if (e.meta?.paramName === 'email_address') setEmailError(e.longMessage || e.message)
-        else if (e.meta?.paramName === 'password') setPasswordError(e.longMessage || e.message)
-        else setGeneralError(e.longMessage || e.message)
+        const message = e.longMessage || e.message
+        if (e.meta?.paramName === 'email_address') {
+          setEmailError(message)
+        } else if (e.meta?.paramName === 'password') {
+          setPasswordError(message)
+        } else {
+          setGeneralError(message)
+        }
       })
     }
   }
@@ -85,13 +83,6 @@ export default function Page() {
         router.replace('/(tabs)/Home')
       }
     } catch (err: any) {
-      // DEBUG ALERT FOR SIGNUP VERIFICATION STEP
-      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown Verification Error";
-      Alert.alert(
-        "🚨 SIGNUP VERIFICATION DEBUG",
-        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
-      );
-
       const errors = err?.errors || []
       errors.forEach((e: any) => setCodeError(e.longMessage || e.message))
     }
@@ -101,9 +92,9 @@ export default function Page() {
 
   if (pendingVerification) {
     return (
-      <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
+      <View style={{ flex: 1 }}>
         <BackgroundGlow />
-        
+        <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
           <Text style={styles.title}>Verify your account</Text>
           <Text style={styles.secondaryTitle}>Enter the code we sent to your email</Text>
 
@@ -130,13 +121,15 @@ export default function Page() {
           >
             <Text style={styles.secondaryButtonText}>I need a new code</Text>
           </Pressable>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     )
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
+    <View style={{ flex: 1 }}>
       <BackgroundGlow />
+      <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
         <View style={{ alignItems: 'center', marginBottom: 0 }}>
           <Image source={require('@/assets/images/CaliSpace_logo.png')} style={styles.logo} />
           <Text style={styles.name}>CaliSpace</Text>
@@ -218,7 +211,8 @@ export default function Page() {
         </View>
 
         <View nativeID="clerk-captcha" />
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   )
 }
 
@@ -228,7 +222,7 @@ const styles = StyleSheet.create({
     gap: 12,
     justifyContent: 'center',
     flexGrow: 1,
-    backgroundColor: '#151414'
+    backgroundColor: 'transparent',
   },
   verifyContainer: {
     padding: 20,

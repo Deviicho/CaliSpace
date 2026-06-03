@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, TextInput, View, Text, Image, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions, Alert } from 'react-native'
+import { Pressable, StyleSheet, TextInput, View, Text, Image, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions } from 'react-native'
 import { useSignIn, useOAuth } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
 import React from 'react'
@@ -27,21 +27,18 @@ export default function Page() {
   const [codeError, setCodeError] = React.useState('')
 
   const handleGoogleSignIn = async () => {
+    setGeneralError('')
     try {
-      const { createdSessionId, setActive: setActiveSession } = await startOAuthFlow()
+      const result = await startOAuthFlow()
+      const { createdSessionId, setActive: setActiveSession } = result
       if (createdSessionId && setActiveSession) {
         await setActiveSession({ session: createdSessionId })
         router.replace('/(tabs)/Home')
+      } else {
+        setGeneralError('Google sign-in was cancelled or failed. Please try again.')
       }
     } catch (err: any) {
-      setGeneralError('Google sign-in failed. Please try again.')
-      
-      // DEBUG ALERT FOR GOOGLE SSO
-      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown OAuth Error";
-      Alert.alert(
-        "🚨 GOOGLE AUTH DEBUG",
-        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
-      );
+      setGeneralError('Google sign-in failed. Verify your connection or Google credentials.')
     }
   }
 
@@ -60,18 +57,20 @@ export default function Page() {
         setIsVerifying(true)
       }
     } catch (err: any) {
-      // DEBUG ALERT FOR MANUAL SIGN IN
-      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown Manual Auth Error";
-      Alert.alert(
-        "🚨 MANUAL SIGN IN DEBUG",
-        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
-      );
-
       const errors = err?.errors || []
+      if (errors.length === 0) {
+        setGeneralError(err?.message || 'An error occurred during authentication.')
+        return
+      }
       errors.forEach((e: any) => {
-        if (e.code === 'form_identifier_not_found') setEmailError(e.longMessage || e.message)
-        else if (e.code === 'form_password_incorrect') setPasswordError(e.longMessage || e.message)
-        else setGeneralError(e.longMessage || e.message)
+        const message = e.longMessage || e.message
+        if (e.code === 'form_identifier_not_found' || e.meta?.paramName === 'identifier') {
+          setEmailError(message)
+        } else if (e.code === 'form_password_incorrect' || e.meta?.paramName === 'password') {
+          setPasswordError(message)
+        } else {
+          setGeneralError(message)
+        }
       })
     }
   }
@@ -86,13 +85,6 @@ export default function Page() {
         router.replace('/(tabs)/Home')
       }
     } catch (err: any) {
-      // DEBUG ALERT FOR VERIFICATION STEP
-      const errMsg = err?.errors?.[0]?.longMessage || err?.message || "Unknown Verification Error";
-      Alert.alert(
-        "🚨 VERIFICATION DEBUG",
-        `Message: ${errMsg}\n\nFull Details: ${JSON.stringify(err, null, 2)}`
-      );
-
       const errors = err?.errors || []
       errors.forEach((e: any) => setCodeError(e.longMessage || e.message))
     }
