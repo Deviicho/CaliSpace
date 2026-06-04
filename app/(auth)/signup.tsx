@@ -27,6 +27,28 @@ export default function Page() {
   const [passwordError, setPasswordError] = React.useState('')
   const [generalError, setGeneralError] = React.useState('')
   const [codeError, setCodeError] = React.useState('')
+  const [resendCooldown, setResendCooldown] = React.useState(0)
+  const cooldownRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const startCooldown = () => {
+    setResendCooldown(60)
+    cooldownRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
+
+  const handleResendCode = () => {
+    if (resendCooldown > 0) return
+    setCodeError('')
+    signUp?.prepareEmailAddressVerification({ strategy: 'email_code' })
+    startCooldown()
+  }
 
   const handleGoogleSignUp = async () => {
     setGeneralError('')
@@ -53,6 +75,7 @@ export default function Page() {
     try {
       await signUp.create({ emailAddress, password, ...(username ? { username } : {}) })
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+      startCooldown()
       setPendingVerification(true);
     } catch (err: any) {
       const errors = err?.errors || []
@@ -116,10 +139,13 @@ export default function Page() {
             <Text style={styles.buttonText}>Verify</Text>
           </Pressable>
           <Pressable
-            style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-            onPress={() => { setCodeError(''); signUp?.prepareEmailAddressVerification({ strategy: 'email_code' }) }}
+            style={[styles.secondaryButton, resendCooldown > 0 && styles.secondaryButtonDisabled]}
+            onPress={handleResendCode}
+            disabled={resendCooldown > 0}
           >
-            <Text style={styles.secondaryButtonText}>I need a new code</Text>
+            <Text style={[styles.secondaryButtonText, resendCooldown > 0 && styles.secondaryButtonTextDisabled]}>
+              {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'I need a new code'}
+            </Text>
           </Pressable>
         </KeyboardAvoidingView>
       </View>
@@ -329,9 +355,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  secondaryButtonDisabled: {
+    opacity: 0.4,
+  },
   secondaryButtonText: {
     color: colors.Ptext,
     fontFamily: 'Poppins-SemiBold',
+  },
+  secondaryButtonTextDisabled: {
+    color: '#666666',
   },
   dividerContainer: {
     flexDirection: 'row',

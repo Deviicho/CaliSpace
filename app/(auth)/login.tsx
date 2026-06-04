@@ -25,6 +25,21 @@ export default function Page() {
   const [passwordError, setPasswordError] = React.useState('')
   const [generalError, setGeneralError] = React.useState('')
   const [codeError, setCodeError] = React.useState('')
+  const [resendCooldown, setResendCooldown] = React.useState(0)
+  const cooldownRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const startCooldown = () => {
+    setResendCooldown(60)
+    cooldownRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
 
   const handleGoogleSignIn = async () => {
     setGeneralError('')
@@ -54,6 +69,7 @@ export default function Page() {
         await setActive({ session: result.createdSessionId })
         router.replace('/(tabs)/Home')
       } else if (result.status === 'needs_second_factor' || (result.status as any) === 'needs_client_trust') {
+        startCooldown()
         setIsVerifying(true)
       }
     } catch (err: any) {
@@ -112,8 +128,18 @@ export default function Page() {
           <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={handleVerify}>
             <Text style={styles.buttonText}>Verify</Text>
           </Pressable>
-          <Pressable style={styles.secondaryButton} onPress={() => setIsVerifying(false)}>
-            <Text style={styles.secondaryButtonText}>Back to Login</Text>
+          <Pressable
+            style={[styles.secondaryButton, resendCooldown > 0 && styles.secondaryButtonDisabled]}
+            onPress={() => {
+              if (resendCooldown > 0) return
+              setCodeError('')
+              startCooldown()
+            }}
+            disabled={resendCooldown > 0}
+          >
+            <Text style={[styles.secondaryButtonText, resendCooldown > 0 && styles.secondaryButtonTextDisabled]}>
+              {resendCooldown > 0 ? `Back to Login (${resendCooldown}s)` : 'Back to Login'}
+            </Text>
           </Pressable>
         </KeyboardAvoidingView>
       </View>
@@ -302,9 +328,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 15,
   },
+  secondaryButtonDisabled: {
+    opacity: 0.4,
+  },
   secondaryButtonText: {
     color: colors.Ptext,
     fontFamily: 'Poppins-SemiBold',
+  },
+  secondaryButtonTextDisabled: {
+    color: '#666666',
   },
   dividerContainer: {
     flexDirection: 'row',
