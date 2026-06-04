@@ -20,7 +20,12 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
 SplashScreen.preventAutoHideAsync();
 
-function InitialLayout() {
+interface InitialLayoutProps {
+  fontsLoaded: boolean;
+  fontError: any;
+}
+
+function InitialLayout({ fontsLoaded, fontError }: InitialLayoutProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
@@ -57,7 +62,14 @@ function InitialLayout() {
     determineRoute();
   }, [isSignedIn, isLoaded, segments]);
 
-  // Don't block rendering — show nothing briefly instead of indefinite blank
+  // Synchronized lifecycle hook: Dismiss splash screen ONLY when fonts are compiled AND routing targets are locked
+  useEffect(() => {
+    if (navigationReady && (fontsLoaded || fontError)) {
+      SplashScreen.hideAsync();
+    }
+  }, [navigationReady, fontsLoaded, fontError]);
+
+  // Maintain native splash view mask during internal pipeline load states
   if (!navigationReady) return null;
 
   return (
@@ -104,18 +116,12 @@ export default function RootLayout() {
     'Poppins-Black': Poppins_900Black,
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
   if (!fontsLoaded && !fontError) return null;
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
-        <InitialLayout />
+        <InitialLayout fontsLoaded={fontsLoaded} fontError={fontError} />
         <StatusBar style="light" />
       </ClerkLoaded>
     </ClerkProvider>

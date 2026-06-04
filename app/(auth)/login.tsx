@@ -18,28 +18,10 @@ export default function Page() {
 
   const [emailAddress, setEmailAddress] = React.useState('')
   const [password, setPassword] = React.useState('')
-  const [code, setCode] = React.useState('')
-  const [isVerifying, setIsVerifying] = React.useState(false)
   const [showPassword, setShowPassword] = React.useState(false)
   const [emailError, setEmailError] = React.useState('')
   const [passwordError, setPasswordError] = React.useState('')
   const [generalError, setGeneralError] = React.useState('')
-  const [codeError, setCodeError] = React.useState('')
-  const [resendCooldown, setResendCooldown] = React.useState(0)
-  const cooldownRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const startCooldown = () => {
-    setResendCooldown(60)
-    cooldownRef.current = setInterval(() => {
-      setResendCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(cooldownRef.current!)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
 
   const handleGoogleSignIn = async () => {
     setGeneralError('')
@@ -68,9 +50,8 @@ export default function Page() {
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
         router.replace('/(tabs)/Home')
-      } else if (result.status === 'needs_second_factor' || (result.status as any) === 'needs_client_trust') {
-        startCooldown()
-        setIsVerifying(true)
+      } else {
+        setGeneralError('Authentication context incomplete. Contact support.')
       }
     } catch (err: any) {
       const errors = err?.errors || []
@@ -89,61 +70,6 @@ export default function Page() {
         }
       })
     }
-  }
-
-  const handleVerify = async () => {
-    if (!signInLoaded || !signIn || !setActive) return
-    setCodeError('')
-    try {
-      const result = await signIn.attemptFirstFactor({ strategy: 'email_code', code })
-      if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId })
-        router.replace('/(tabs)/Home')
-      }
-    } catch (err: any) {
-      const errors = err?.errors || []
-      errors.forEach((e: any) => setCodeError(e.longMessage || e.message))
-    }
-  }
-
-  if (isVerifying) {
-    return (
-      <View style={{ flex: 1 }}>
-        <BackgroundGlow />
-        <KeyboardAvoidingView style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} behavior='padding'>
-          <Text style={styles.title}>Verify your account</Text>
-          <Text style={styles.secondaryTitle}>Enter the code we sent to your email</Text>
-
-          <Text style={styles.label}>Verification code</Text>
-          <TextInput
-            style={[styles.input, codeError ? styles.inputError : null]}
-            value={code}
-            placeholder="Enter verification code"
-            placeholderTextColor="#666666"
-            onChangeText={(c) => { setCode(c); setCodeError('') }}
-            keyboardType="numeric"
-          />
-          {codeError ? <Text style={styles.errorText}>{codeError}</Text> : null}
-
-          <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={handleVerify}>
-            <Text style={styles.buttonText}>Verify</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.secondaryButton, resendCooldown > 0 && styles.secondaryButtonDisabled]}
-            onPress={() => {
-              if (resendCooldown > 0) return
-              setCodeError('')
-              startCooldown()
-            }}
-            disabled={resendCooldown > 0}
-          >
-            <Text style={[styles.secondaryButtonText, resendCooldown > 0 && styles.secondaryButtonTextDisabled]}>
-              {resendCooldown > 0 ? `Back to Login (${resendCooldown}s)` : 'Back to Login'}
-            </Text>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </View>
-    )
   }
 
   return (
@@ -232,12 +158,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: 'transparent',
   },
-  verifyContainer: {
-    padding: 20,
-    gap: 12,
-    justifyContent: 'center',
-    flexGrow: 1,
-  },
   logo: {
     height: height * 0.11,
     width: height * 0.13,
@@ -323,20 +243,6 @@ const styles = StyleSheet.create({
     color: colors.Ptext,
     fontFamily: 'Poppins-SemiBold',
     fontSize: 16,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    marginTop: 15,
-  },
-  secondaryButtonDisabled: {
-    opacity: 0.4,
-  },
-  secondaryButtonText: {
-    color: colors.Ptext,
-    fontFamily: 'Poppins-SemiBold',
-  },
-  secondaryButtonTextDisabled: {
-    color: '#666666',
   },
   dividerContainer: {
     flexDirection: 'row',

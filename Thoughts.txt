@@ -5,13 +5,18 @@ make the tabs navigatable by swapping right and left
 check if the disigns are responsive
 ---
 problems:
----
-questions:
-Turso configurations
-how will i make the tools is it gonna be a module already done thing or am i gonna have to make it from scratch
-how to make the app offline and sync-when-connected
-how to make the user experience smoother and faster
-how to make the app work on iphone and android without having an apple device to test it
+spashscreen delay is fixed but take the spash screen back to cover the grey screen
+username cannot be written in manual signup (90% its a clerk problem)
+username cannot be set or changed inside the app (clerk problem too)
+remove the login verification from login page and from clerk cuz its not working and i dont want it either
+
+things that are fixed:
+splash screen time is good now
+signup is working (but we have to fix the username prob first)
+verification email after signup is working
+google auth is working 
+all other features are working perfectly
+
 ---
 random thoughts:
 ---
