@@ -11,7 +11,7 @@
 [![Auth](https://img.shields.io/badge/Auth-Clerk-6C47FF?style=flat-square)](https://clerk.com)
 [![DB](https://img.shields.io/badge/DB-Turso-4FF8D2?style=flat-square)](https://turso.tech)
 
-[**⬇ Download APK**]([#download](https://github.com/Deviicho/CaliSpace/releases/tag/v1.0.0))
+[**⬇ Download APK**](https://github.com/Deviicho/CaliSpace/releases/tag/v1.0.0)
 
 </div>
 
@@ -52,7 +52,7 @@ CaliSpace is a calisthenics training app built for athletes who want to **plan, 
 
 > Android only. Minimum Android 10 recommended.
 
-[**Download Latest APK →**]([#](https://github.com/Deviicho/CaliSpace/releases/tag/v1.0.0))
+[**Download Latest APK →**](https://github.com/Deviicho/CaliSpace/releases/tag/v1.0.0)
 
 </div>
 
