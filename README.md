@@ -1,50 +1,71 @@
-# Welcome to your Expo app 👋
+<div align="center">
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+<img src="assets/images/CaliSpace_logo.png" width="100" height="100" />
 
-## Get started
+# CaliSpace
 
-1. Install dependencies
+**Your space to train.**
 
-   ```bash
-   npm install
-   ```
+[![Platform](https://img.shields.io/badge/Platform-Android-brightgreen?style=flat-square&logo=android)](https://android.com)
+[![Built with Expo](https://img.shields.io/badge/Built%20with-Expo-000020?style=flat-square&logo=expo)](https://expo.dev)
+[![Auth](https://img.shields.io/badge/Auth-Clerk-6C47FF?style=flat-square)](https://clerk.com)
+[![DB](https://img.shields.io/badge/DB-Turso-4FF8D2?style=flat-square)](https://turso.tech)
 
-2. Start the app
+[**⬇ Download APK**](#download)
 
-   ```bash
-   npx expo start
-   ```
+</div>
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## What is CaliSpace?
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+CaliSpace is a calisthenics training app built for athletes who want to **plan, track, and grow** — without the bloat. Dark by default. Fast by design.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Features
 
-```bash
-npm run reset-project
-```
+| | Feature | Description |
+|---|---|---|
+| 🏗️ | **Workout Plan Builder** | Create fully custom workout plans. Structure every day, every set, your way. |
+| 📊 | **Exercise Tracking** | Log sets, reps, weight, and notes per exercise. |
+| ⏱️ | **Stopwatch** | Track how long you hold an exercise or rest. |
+| ⏲️ | **Timer** | Set rest timers with sound alarm. Keeps running in the background. |
+| 👊 | **Pushup Counter** | Proximity sensor-based automatic rep counting. |
+| ☁️ | **Cloud Sync** | Data tied to your account. Never lose a workout. |
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## Tech Stack
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Framework** — React Native + Expo Router (SDK 54)
+- **Auth** — Clerk (email/password + Google OAuth)
+- **Database** — Turso (libSQL)
+- **Backend** — Expo API Routes via EAS
+- **Language** — TypeScript
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## Download
 
-Join our community of developers creating universal apps.
+<div align="center">
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+> Android only. Minimum Android 10 recommended.
+
+[**Download Latest APK →**](#)
+
+</div>
+
+---
+
+## Screenshots
+
+> Coming soon.
+
+---
+
+<div align="center">
+
+Made by **Deviicho** &nbsp;·&nbsp; [GitHub](https://github.com/Deviicho/CaliSpace)
+
+</div>
