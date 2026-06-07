@@ -13,7 +13,7 @@ import { useRef, useState } from 'react';
 import { useApi } from '@/lib/api';
 import { Toast } from '@/components/Toast';
 
-const MAX_NAME = 165;
+const MAX_NAME = 16;
 
 export default function WorkoutFormScreen() {
   const router = useRouter();

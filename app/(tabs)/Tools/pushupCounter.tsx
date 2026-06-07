@@ -79,8 +79,7 @@ export default function PushupCounterScreen() {
       {!isRunning && (
         <View style={styles.warning}>
           <Text style={styles.warningText}>
-            Place your phone on the floor under your chest, then press Start.
-            (the sensor's position is near your phone's  front camera)
+            (the sensor is near your phone's  front camera)
           </Text>
         </View>
       )}

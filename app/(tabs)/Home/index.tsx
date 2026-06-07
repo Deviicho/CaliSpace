@@ -176,6 +176,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 5,
+    padding: 2,
   },
   timerShortcutLink: {
     padding: 10,

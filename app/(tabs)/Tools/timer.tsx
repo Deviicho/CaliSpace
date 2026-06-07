@@ -3,13 +3,15 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  StatusBar,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { colors } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Audio } from 'expo-av';
 
 const PRESETS = [
   { label: '30s', minutes: 0, seconds: 30 },
@@ -17,6 +19,8 @@ const PRESETS = [
   { label: '5m', minutes: 5, seconds: 0 },
   { label: '10m', minutes: 10, seconds: 0 },
 ];
+
+const END_TIME_KEY = 'timer_end_time';
 
 export default function TimerScreen() {
   const router = useRouter();
@@ -26,50 +30,70 @@ export default function TimerScreen() {
   const [isAlarming, setIsAlarming] = useState(false);
   const [muted, setMuted] = useState(false);
   const intervalRef = useRef<any>(null);
-  const alarmRef = useRef<any>(null);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   const currentPreset = PRESETS[selectedPreset];
 
-  const startAlarm = () => {
-    setIsAlarming(true);
-    if (!muted) {
-      alarmRef.current = setInterval(() => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      }, 800);
+  const playAlarm = async () => {
+    if (muted) return;
+    try {
+      await Audio.setAudioModeAsync({ playsInSilentModeIOS: false });
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/alarm.wav'),
+        { isLooping: true }
+      );
+      soundRef.current = sound;
+      await sound.playAsync();
+    } catch (e) {
+      console.error('Sound error:', e);
     }
   };
 
-  const stopAlarm = () => {
+  const stopAlarm = async () => {
     setIsAlarming(false);
-    clearInterval(alarmRef.current);
-    alarmRef.current = null;
+    if (soundRef.current) {
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
   };
 
-  const stopTimer = () => {
+  const stopTimer = async () => {
   clearInterval(intervalRef.current);
   intervalRef.current = null;
-  stopAlarm();
+  await AsyncStorage.removeItem(END_TIME_KEY);
+  await stopAlarm();
   setIsRunning(false);
 };
 
-  const handleStartStop = () => {
-  if (isAlarming || isRunning) {
-    stopTimer();
+  const handleStartStop = async () => {
+  if (isAlarming) {
+    await stopAlarm();
+    setTimeLeft(currentPreset.minutes * 60 + currentPreset.seconds);
     return;
   }
+  if (isRunning) {
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+    await AsyncStorage.removeItem(END_TIME_KEY);
+    setIsRunning(false);
+    return;
+  }
+  const endTime = Date.now() + timeLeft * 1000;
+  await AsyncStorage.setItem(END_TIME_KEY, String(endTime));
   setIsRunning(true);
 };
 
-  const handleReset = () => {
-  clearInterval(intervalRef.current);
-  intervalRef.current = null;
-  stopAlarm();
-  setIsRunning(false);
+  const handleReset = async () => {
+  await stopTimer();
   setTimeLeft(currentPreset.minutes * 60 + currentPreset.seconds);
 };
 
-  const handleQuit = () => {
-    stopTimer();
+
+
+  const handleQuit = async () => {
+    await stopTimer();
     router.replace('/(tabs)/Tools');
   };
 
@@ -80,14 +104,23 @@ export default function TimerScreen() {
     setTimeLeft(p.minutes * 60 + p.seconds);
   };
 
+  const triggerAlarm = async () => {
+  clearInterval(intervalRef.current);
+  intervalRef.current = null;
+  setIsRunning(false);
+  setIsAlarming(true);
+  setTimeLeft(0);
+  await AsyncStorage.removeItem(END_TIME_KEY);
+  await playAlarm();
+};
+
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(intervalRef.current);
-            setIsRunning(false);
-            startAlarm();
+            triggerAlarm();
             return 0;
           }
           return prev - 1;
@@ -98,13 +131,38 @@ export default function TimerScreen() {
   }, [isRunning]);
 
   useEffect(() => {
-    if (muted && alarmRef.current) {
-      clearInterval(alarmRef.current);
-      alarmRef.current = null;
+  const subscription = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
+    if (appStateRef.current !== 'active' && nextState === 'active') {
+      const endTimeStr = await AsyncStorage.getItem(END_TIME_KEY);
+      if (endTimeStr) {
+        const remaining = Math.round((Number(endTimeStr) - Date.now()) / 1000);
+        if (remaining <= 0) {
+          await triggerAlarm();
+        } else {
+          setTimeLeft(remaining);
+          setIsRunning(true);
+        }
+      }
+    }
+    appStateRef.current = nextState;
+  });
+
+  return () => subscription.remove();
+}, []);
+
+  useEffect(() => {
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (muted && soundRef.current) {
+      soundRef.current.stopAsync();
     } else if (!muted && isAlarming) {
-      alarmRef.current = setInterval(() => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      }, 800);
+      playAlarm();
     }
   }, [muted]);
 
@@ -114,12 +172,9 @@ export default function TimerScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-
       <Text style={styles.title}>Timer</Text>
       <Text style={styles.subtitle}>set a timer for your breaks and sets</Text>
 
-      {/* Presets */}
       <View style={styles.presets}>
         {PRESETS.map((p, i) => (
           <TouchableOpacity
@@ -134,7 +189,6 @@ export default function TimerScreen() {
         ))}
       </View>
 
-      {/* Timer Display */}
       <View style={[styles.displayBox, isAlarming && styles.displayBoxAlarming]}>
         <View style={styles.timeRow}>
           <Text style={styles.timeDigit}>{pad(displayMinutes)}</Text>
@@ -148,7 +202,6 @@ export default function TimerScreen() {
         </View>
       </View>
 
-      {/* Buttons */}
       <View style={styles.buttons}>
         <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleStartStop}>
           <Text style={styles.buttonText}>{isRunning || isAlarming ? 'Stop' : 'Start'}</Text>
@@ -161,7 +214,6 @@ export default function TimerScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Mute */}
       <TouchableOpacity style={styles.muteButton} onPress={() => setMuted((m) => !m)}>
         <Ionicons
           name={muted ? 'volume-mute-outline' : 'volume-high-outline'}

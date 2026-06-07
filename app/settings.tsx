@@ -104,12 +104,27 @@ export default function SettingsScreen() {
 
       {/* Made by */}
       <View style={styles.section}>
-        <View style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => Linking.openURL('https://github.com/Deviicho')}
+        >
           <View style={styles.rowLeft}>
             <Ionicons name="code-slash-outline" size={20} color={colors.icons} />
             <Text style={styles.rowText}>Made by Michel.k.7</Text>
           </View>
-        </View>
+        </TouchableOpacity>
+      </View>
+      {/* Share application */}
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => Linking.openURL('https://github.com/Deviicho/CaliSpace')}
+        >
+          <View style={styles.rowLeft}>
+            <Ionicons name="share-social-outline" size={20} color={colors.icons} />
+            <Text style={styles.rowText}>Share CaliSpace</Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* Logout */}

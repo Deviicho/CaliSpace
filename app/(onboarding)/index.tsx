@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'expo-router';
-import { Image, ImageBackground, StyleSheet } from 'react-native';
-import { TouchableOpacity, View, Dimensions } from 'react-native'
+import { Image, ImageBackground, StyleSheet, TouchableOpacity, View, Dimensions, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors } from '@/constants/colors'
-import { wheights } from '@/constants/wheights'
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from '@react-navigation/elements';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors } from '@/constants/colors';
 
 const { width, height } = Dimensions.get('window');
+const scale = (size: number) => (width / 390) * size;
 
 export default function GreetingScreen() {
   const router = useRouter();
@@ -16,7 +14,6 @@ export default function GreetingScreen() {
 
   useEffect(() => {
     const check = async () => {
-      // await AsyncStorage.removeItem('onboarding_complete');  //use this for testing the onboarding
       const val = await AsyncStorage.getItem('onboarding_complete');
       if (val !== 'true') setShouldRender(true);
     };
@@ -27,32 +24,46 @@ export default function GreetingScreen() {
 
   return (
     <View style={styles.container}>
-      
-      <ImageBackground 
-        source={require('@/assets/images/greetingBackground.png')} 
+      <ImageBackground
+        source={require('@/assets/images/greetingBackground.png')}
         style={styles.background}
         resizeMode="cover"
       >
         <View style={styles.overlay}>
-          
-          <Image source={require('@/assets/images/CaliSpace_logo.png')}
-                 style={styles.logo} />
-
-          <Text style={styles.name}>CaliSpace</Text>
-
-          <Text style={styles.hookText}><Text style={{fontFamily: 'Poppins-Black', color: colors.Ptext}}>YOUR</Text> <Text style={{fontFamily: 'Poppins-Black', color: colors.accent}}>SPACE</Text>          <Text style={{fontFamily: 'Poppins-Black', color: colors.Ptext}}>TO</Text> <Text style={{fontFamily: 'Poppins-Black', color: colors.accent}}>TRAIN</Text></Text>
-
-          <Text style={styles.sHookText}>{'The space where calisthenics athletes\ntrain, track and grow'}</Text>
-
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={() => router.replace('/(onboarding)/feature1')}
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.buttonText}>Get Started</Text>
-          </TouchableOpacity>
+            <Image source={require('@/assets/images/CaliSpace_logo.png')} style={styles.logo} />
+            <Text style={styles.name}>CaliSpace</Text>
+            
+            <View style={styles.hookContainer}>
+            
+                <Text style={styles.hookText}>
+                  <Text style={{ fontFamily: 'Poppins-Black', color: colors.Ptext }}>YOUR</Text>{'  '}
+                  <Text style={{ fontFamily: 'Poppins-Black', color: colors.accent }}>SPACE</Text>
+                </Text>
+              
+              
+                <Text style={styles.hookText}>
+              <Text style={{ fontFamily: 'Poppins-Black', color: colors.Ptext }}>TO</Text>{'  '}
+              <Text style={{ fontFamily: 'Poppins-Black', color: colors.accent }}>TRAIN</Text>
+              </Text>
 
-          <Text style={styles.marketingSentence}>Join the CaliSpace community</Text>
-
+              <Text style={styles.sHookText}>{'The space where calisthenics athletes\ntrain, track and grow'}</Text>
+            </View>
+            
+            <View style={styles.bottomSection}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => router.push('/(onboarding)/feature1')}
+            >
+              <Text style={styles.buttonText}>Get Started</Text>
+            </TouchableOpacity>
+            <Text style={styles.marketingSentence}>Join the CaliSpace community</Text>
+            </View>
+          </ScrollView>
         </View>
       </ImageBackground>
     </View>
@@ -71,61 +82,76 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)', 
-    paddingTop: width * 0.25,
-    paddingHorizontal: 20,
-    flexDirection: 'column',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+  },
+  scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
+    paddingTop: height * 0.1,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+  },
+  hookContainer: {
+    flexDirection: 'column',
+    marginTop: Math.min(height * 0.07, 60),
+    gap: 5,
   },
   button: {
-    marginTop: 20,
+    marginTop: 24,
     backgroundColor: '#D70000',
-    padding: 12,
+    paddingVertical: 12,
     width: '80%',
     borderRadius: 14,
     alignItems: 'center',
-    minWidth: width*0.25,
     borderWidth: 0.5,
-    borderColor: '#d8d8d883',  
-    borderStyle: 'solid',
+    borderColor: '#d8d8d883',
   },
   buttonText: {
-    fontFamily: 'Poppins-bold',
+    fontFamily: 'Poppins-Bold',
     color: colors.Ptext,
-    fontSize: 35,
+    fontSize: scale(22),
     fontWeight: '700',
   },
   logo: {
-    height: 130,
-    width: 150,
+    height: scale(110),
+    width: scale(130),
   },
   name: {
     fontFamily: 'Poppins-SemiBold',
     color: '#D70000',
-    fontSize: 40,
+    fontSize: scale(36),
     letterSpacing: -1,
+    marginTop: 8,
   },
   hookText: {
-    fontFamily: 'Poppins-Black', 
-    marginTop: height*0.11,
-    fontSize: 45,
-    letterSpacing: -1, 
-    lineHeight: 50,
+    fontFamily: 'Poppins-Black',
+    fontSize: scale(40),
+    letterSpacing: -1,
+    lineHeight: scale(42),
     textAlign: 'center',
   },
   sHookText: {
-    minWidth:width*1,
+    maxWidth: width * 0.85,
     fontFamily: 'Poppins-Black',
-    fontSize: 18,
+    fontSize: scale(15),
     textAlign: 'center',
     color: colors.Stext,
-    marginBottom:height*0.12,
+    marginTop: 16,
   },
   marketingSentence: {
-    fontFamily: 'Poppins-bold',
-    marginTop: height*0.055,
-    fontSize: 16,
+    fontFamily: 'Poppins-Bold',
+    marginTop: 10,
+    fontSize: scale(14),
     textAlign: 'center',
     color: colors.Ptext,
+  },
+  bottomSection: {
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 60,
+
   }
 });

@@ -176,6 +176,7 @@ const styles = StyleSheet.create({
     color: colors.Ptext,
     fontSize: 20,
     fontFamily: 'Poppins-bold',
+    maxWidth: 187,
   },
   listContainer: {
     backgroundColor: '#202020',
