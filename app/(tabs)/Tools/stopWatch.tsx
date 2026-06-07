@@ -4,10 +4,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  Dimensions
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { colors } from '@/constants/colors';
+
+const { width, height } = Dimensions.get('window');
+const scale = (size: number) => (width / 390) * size;
 
 export default function StopwatchScreen() {
   const router = useRouter();
@@ -134,16 +138,16 @@ const styles = StyleSheet.create({
   },
   timeDigit: {
     color: '#D70000',
-    fontSize: 56,
+    fontSize: scale(48),
     fontFamily: 'Poppins-SemiBold',
-    width: 76,
+    width: scale(70),
     textAlign: 'center',
   },
   timeSeparator: {
     color: '#D70000',
-    fontSize: 56,
+    fontSize: scale(48),
     fontFamily: 'Poppins-SemiBold',
-    width: 16,
+    width: scale(18),
     textAlign: 'center',
   },
   buttons: {

@@ -52,6 +52,7 @@ export default function Page() {
         await setActive({ session: result.createdSessionId });
         router.replace('/(tabs)/Home');
       } else {
+        console.log('Auth status:', result.status);
         setGeneralError('Authentication context incomplete. Contact support.');
       }
     } catch (err: any) {

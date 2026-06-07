@@ -5,6 +5,7 @@ import {
   StyleSheet,
   AppState,
   AppStateStatus,
+  Dimensions
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -21,6 +22,9 @@ const PRESETS = [
 ];
 
 const END_TIME_KEY = 'timer_end_time';
+
+const { width, height } = Dimensions.get('window');
+const scale = (size: number) => (width / 390) * size;
 
 export default function TimerScreen() {
   const router = useRouter();
@@ -299,16 +303,16 @@ const styles = StyleSheet.create({
   },
   timeDigit: {
     color: '#D70000',
-    fontSize: 64,
+    fontSize: scale(48),
     fontFamily: 'Poppins-SemiBold',
-    width: 90,
+    width: scale(80),
     textAlign: 'center',
   },
   timeSeparator: {
     color: '#D70000',
-    fontSize: 64,
+    fontSize: scale(48),
     fontFamily: 'Poppins-SemiBold',
-    width: 20,
+    width: scale(18),
     textAlign: 'center',
     marginBottom: 10
   },
